@@ -1,7 +1,11 @@
 package main
 
-import "fmt"
+import (
+	"org.chatgin/src/config"
+	"org.chatgin/src/router"
+)
 
 func main() {
-	fmt.Printf("\"hello chatgin\": %v\n", "hello chatgin")
+	r := router.Router()
+	r.Run(config.ServerConfig.ServerPort)
 }
