@@ -1,13 +1,14 @@
 package config
 
 import (
+	"os"
+
 	redis "github.com/go-redis/redis/v8"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"org.chatgin/src/common"
-	"org.chatgin/src/modules/module"
 )
 
 // 全局配置
@@ -32,23 +33,27 @@ type RedisConfig struct {
 // initRedis: 初始化 redis client 连接;
 // initServerConfig: 初始化 server 配置;
 func InitConfig() {
-	viper.AddConfigPath("./evn")
-	viper.SetConfigFile("application.yaml")
-	err := viper.ReadInConfig()
+	// 获取项目的执行路径
+	dir, _ := os.Getwd()
+	configFile = viper.New()
+	configFile.AddConfigPath(dir + "/evn")
+	configFile.SetConfigName("application")
+	configFile.SetConfigType("yaml")
+	err := configFile.ReadInConfig()
 	if err != nil {
 		logrus.Fatalln("加载配置文件出错，程序退出: %v\n", err)
 	}
 	// 初始化 server配置
 	initServerConfig()
 	// 初始化mysql
-	initMysql(viper.GetString(common.CONFIG_PREFIX + "mysql.dsn"))
+	initMysql(configFile.GetString(common.CONFIG_PREFIX + "mysql.dsn"))
 	// 初始化redis client
 	initRedis(&RedisConfig{
-		Addr:         viper.GetString(common.CONFIG_PREFIX + "redis.addr"),
-		Database:     viper.GetInt(common.CONFIG_PREFIX + "redis.db"),
-		Password:     viper.GetString(common.CONFIG_PREFIX + "redis.password"),
-		PoolSize:     viper.GetInt(common.CONFIG_PREFIX + "redis.poolSize"),
-		MinIdleConns: viper.GetInt(common.CONFIG_PREFIX + "redis.minIdleConns"),
+		Addr:         configFile.GetString(common.CONFIG_PREFIX + "redis.addr"),
+		Database:     configFile.GetInt(common.CONFIG_PREFIX + "redis.db"),
+		Password:     configFile.GetString(common.CONFIG_PREFIX + "redis.password"),
+		PoolSize:     configFile.GetInt(common.CONFIG_PREFIX + "redis.poolSize"),
+		MinIdleConns: configFile.GetInt(common.CONFIG_PREFIX + "redis.minIdleConns"),
 	})
 
 }
@@ -57,15 +62,16 @@ var (
 	MysqlDB      *gorm.DB
 	RedisClient  *redis.Client
 	ServerConfig *AppConfig
+	configFile   *viper.Viper
 )
 
 // 初始化server 配置
 func initServerConfig() {
-	port := viper.GetString(common.CONFIG_PREFIX + ".server.port")
-	path := viper.GetString(common.CONFIG_PREFIX + ".server.context.path")
-	appName := viper.GetString(common.CONFIG_PREFIX + ".server.appName")
+	port := configFile.GetString(common.CONFIG_PREFIX + ".server.port")
+	path := configFile.GetString(common.CONFIG_PREFIX + ".server.context.path")
+	appName := configFile.GetString(common.CONFIG_PREFIX + ".server.appName")
 
-	if "" == port {
+	if port == "" {
 		port = common.DEFAULT_SERVER_PORT
 	}
 	if path == "" {
@@ -84,9 +90,9 @@ func initServerConfig() {
 
 // 初始化mysql
 func initMysql(dns string) {
-	db, error := gorm.Open(mysql.Open(dns), &gorm.Config{})
-	if error != nil {
-		logrus.Fatalln("初始化mysql数据库连接错误。", error)
+	db, err := gorm.Open(mysql.Open(dns), &gorm.Config{})
+	if err != nil {
+		logrus.Fatalln("初始化mysql数据库连接错误。%v", err)
 	}
 	MysqlDB = db
 }
@@ -98,12 +104,4 @@ func initRedis(config *RedisConfig) {
 		DB:       config.Database,
 		Password: config.Password,
 	})
-}
-
-// 初始化数据库表
-func InitTables() {
-	// 创建用户表
-	user := &module.UserBasic{}
-	user.CreateTable()
-
 }

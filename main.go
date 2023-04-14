@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"org.chatgin/src/config"
 	"org.chatgin/src/router"
 )
@@ -15,4 +17,5 @@ func main() {
 
 	r := router.Router()
 	r.Run(config.ServerConfig.ServerPort)
+	fmt.Printf("%v 启动完成。\n", config.ServerConfig.AppName)
 }

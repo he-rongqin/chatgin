@@ -3,7 +3,7 @@ package service
 import (
 	"errors"
 
-	"org.chatgin/src/modules/module"
+	"org.chatgin/src/module"
 )
 
 type UserService struct {
@@ -38,7 +38,7 @@ func (u *UserService) Login(userLogin UserLoginForm) (userInfo *UserInfo, erro e
 		return nil, errors.New("登录密码不允许为空")
 	}
 	user := &module.UserBasic{}
-	user.getByUsername(userLogin.Paasword)
+	user.GetByUsername(userLogin.Paasword)
 	if user.Username == "" {
 		return nil, errors.New("用户名或密码错误")
 	}
