@@ -28,8 +28,12 @@ func Router() *gin.Engine {
 		}
 		// 调用service 完成登录
 		us := &service.UserService{}
-		res := us.Login(userLogin)
-		ctx.JSON(res.Code, res)
+		userInfo, err := us.Login(userLogin)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, common.ResError(http.StatusBadRequest, err))
+			return
+		}
+		ctx.JSON(http.StatusBadRequest, common.ResData(userInfo))
 	})
 	return r
 }
