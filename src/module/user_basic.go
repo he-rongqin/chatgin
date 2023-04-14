@@ -19,13 +19,12 @@ func (user *UserBasic) CreateTable() {
 }
 
 // 根据用户名获取用户信息
-func (u *UserBasic) GetByUsername(account string) *UserBasic {
+func (u *UserBasic) GetByUsername(account string) {
 	config.MysqlDB.Where("account = ? ", account).First(u)
-	return u
 }
 
 // 新增数据
-func (u *UserBasic) Insert(user UserBasic) bool {
-	config.MysqlDB.Create(user)
+func (u *UserBasic) Insert() bool {
+	config.MysqlDB.Create(u)
 	return true
 }
