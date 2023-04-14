@@ -3,7 +3,9 @@ package service
 import (
 	"errors"
 
+	"github.com/sirupsen/logrus"
 	"org.chatgin/src/authenticate"
+	"org.chatgin/src/interfaces"
 	"org.chatgin/src/module"
 )
 
@@ -24,9 +26,25 @@ type UserRegisterForm struct {
 }
 
 type UserInfo struct {
-	id       uint
-	username string
-	state    int16
+	id       uint   `json:"id"`
+	username string `json:"username"`
+	state    int16  `json:"state"`
+}
+
+func (userinfo *UserInfo) GetUsername() string {
+	return userinfo.username
+}
+
+func (userinfo *UserInfo) GetId() uint {
+	return userinfo.id
+}
+
+func (userinfo *UserInfo) GetState() int16 {
+	return userinfo.state
+}
+
+func (userinfo *UserInfo) GetToken() string {
+	return ""
 }
 
 func NewUserInfo(id uint, state int16, username string) *UserInfo {
@@ -41,7 +59,10 @@ func NewUserInfo(id uint, state int16, username string) *UserInfo {
 func (u *UserService) Register(userRegister UserRegisterForm) error {
 	// 校验手机号是否已经注册
 	userBasci := &module.UserBasic{}
-	userBasci.GetByUsername(userRegister.Phone)
+	if err := userBasci.GetByUsername(userRegister.Phone); err != nil {
+		logrus.Errorf("查询用户发生错误：：%v", err)
+		return errors.New("注册失败，系统错误")
+	}
 	if userBasci.Username != "" {
 		return errors.New("注册失败，手机号已存在")
 	}
@@ -53,15 +74,15 @@ func (u *UserService) Register(userRegister UserRegisterForm) error {
 	}
 	userBasci.Passwrod = password
 	userBasci.Username = userRegister.Phone
+	userBasci.Account = userRegister.Phone
 	userBasci.State = 1
 	// 写入数据库
-	userBasci.Insert()
-	return nil
+	return userBasci.Insert()
 
 }
 
 // user login
-func (u *UserService) Login(userLogin UserLoginForm) (userInfo *UserInfo, erro error) {
+func (u *UserService) Login(userLogin UserLoginForm) (userInfo interfaces.UserInfo, erro error) {
 	if userLogin.Username == "" {
 		return nil, errors.New("登录名不允许为空")
 	}
@@ -69,7 +90,10 @@ func (u *UserService) Login(userLogin UserLoginForm) (userInfo *UserInfo, erro e
 		return nil, errors.New("登录密码不允许为空")
 	}
 	user := &module.UserBasic{}
-	user.GetByUsername(userLogin.Paasword)
+	if err := user.GetByUsername(userLogin.Username); err != nil {
+		logrus.Errorf("查询用户发生错误：：%v", err)
+		return nil, errors.New("登录失败，系统错误。")
+	}
 	if user.Username == "" {
 		return nil, errors.New("用户名或密码错误")
 	}

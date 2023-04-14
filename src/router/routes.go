@@ -19,6 +19,7 @@ func Router() *gin.Engine {
 	// Recovery 中间件会 recover 任何 panic。如果有 panic 的话，会写入 500。
 	r.Use(gin.Recovery())
 
+	// 登录
 	r.POST("/auth/login", func(ctx *gin.Context) {
 		var userLogin service.UserLoginForm
 		// binding 校验
@@ -33,7 +34,30 @@ func Router() *gin.Engine {
 			ctx.JSON(http.StatusBadRequest, common.ResError(http.StatusBadRequest, err))
 			return
 		}
-		ctx.JSON(http.StatusBadRequest, common.ResData(userInfo))
+		// 组装 map，因为userinfo 属性是私有的
+		userJson := map[string]any{
+			"id":       userInfo.GetId(),
+			"username": userInfo.GetUsername(),
+			"state":    userInfo.GetState(),
+			"token":    userInfo.GetToken(),
+		}
+		ctx.JSON(http.StatusBadRequest, common.ResData(userJson))
+	})
+	// 注册
+	r.POST("/user/register", func(ctx *gin.Context) {
+		var userRegister service.UserRegisterForm
+		if err := ctx.ShouldBind(&userRegister); err != nil {
+			ctx.JSON(http.StatusBadRequest, common.ResError(http.StatusBadRequest, err))
+			return
+		}
+		// 调用service 完成注册
+		us := &service.UserService{}
+		err := us.Register(userRegister)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, common.ResError(http.StatusBadRequest, err))
+			return
+		}
+		ctx.JSON(http.StatusBadRequest, common.ResSuccess())
 	})
 	return r
 }
