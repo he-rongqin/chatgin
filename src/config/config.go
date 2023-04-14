@@ -27,6 +27,10 @@ type RedisConfig struct {
 	MinIdleConns int // 最小空闲连接数
 }
 
+// 全局初始化,
+// initMysql: 初始化mysql 数据连接;
+// initRedis: 初始化 redis client 连接;
+// initServerConfig: 初始化 server 配置;
 func InitConfig() {
 	viper.AddConfigPath("./evn")
 	viper.SetConfigFile("application.yaml")

@@ -5,7 +5,14 @@ import (
 	"org.chatgin/src/router"
 )
 
+// 初始化方法
+func init() {
+	// 初始化配置
+	config.InitConfig()
+}
+
 func main() {
+
 	r := router.Router()
 	r.Run(config.ServerConfig.ServerPort)
 }
