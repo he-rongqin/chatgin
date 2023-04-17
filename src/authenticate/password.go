@@ -2,8 +2,10 @@ package authenticate
 
 import "golang.org/x/crypto/bcrypt"
 
+type BcryptPassword struct{}
+
 // 密码加密
-func EncryptPassword(password string) (encrypt string, err error) {
+func (b BcryptPassword) EncryptPassword(password string) (encrypt string, err error) {
 
 	encryptPassword, erro := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if erro != nil {
@@ -13,7 +15,7 @@ func EncryptPassword(password string) (encrypt string, err error) {
 }
 
 // 密码匹配校验
-func MatchPassword(password string, encryptPassword string) bool {
+func (b BcryptPassword) MatchPassword(password string, encryptPassword string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(encryptPassword), []byte(password))
 	return err == nil
 }

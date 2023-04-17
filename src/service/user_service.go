@@ -68,7 +68,8 @@ func (u *UserService) Register(userRegister UserRegisterForm) error {
 	}
 
 	// 密码加密
-	password, err := authenticate.EncryptPassword(userRegister.Password)
+	paaswordEncoder := &authenticate.BcryptPassword{}
+	password, err := paaswordEncoder.EncryptPassword(userRegister.Password)
 	if err != nil {
 		return errors.New("注册失败，系统异常")
 	}
@@ -98,7 +99,8 @@ func (u *UserService) Login(userLogin UserLoginForm) (userInfo interfaces.UserIn
 		return nil, errors.New("用户名或密码错误")
 	}
 	// 判断密码
-	if !authenticate.MatchPassword(userLogin.Paasword, user.Passwrod) {
+	paaswordEncoder := &authenticate.BcryptPassword{}
+	if !paaswordEncoder.MatchPassword(userLogin.Paasword, user.Passwrod) {
 		return nil, errors.New("用户名或密码错误")
 
 	}
