@@ -34,9 +34,9 @@ type LoginUser struct {
 }
 
 type UserInfo struct {
-	Id       uint
-	Username string
-	State    int16
+	Id       uint   `json:"id"`
+	Username string `json:"username"`
+	State    int16  `json:"state"`
 }
 
 func (userinfo *LoginUser) GetUsername() string {
