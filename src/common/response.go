@@ -33,3 +33,12 @@ func ResError(code int, e error) *Response {
 		Data:    nil,
 	}
 }
+
+func ResErrorMsg(code int, msg string) *Response {
+	return &Response{
+		Code:    code,
+		Message: msg,
+		Success: false,
+		Data:    nil,
+	}
+}

@@ -1,6 +1,6 @@
 package interfaces
 
-type UserInfo interface {
+type LoginUser[T any] interface {
 	// get username
 	GetUsername() string
 
@@ -11,5 +11,5 @@ type UserInfo interface {
 	GetState() int16
 
 	// get usser token
-	GetToken() string
+	GetToken() TokenObject[T]
 }
