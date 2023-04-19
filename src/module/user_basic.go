@@ -24,6 +24,14 @@ func (u *UserBasic) GetByUsername(account string) error {
 
 }
 
+// 根据ID获取用户信息
+func (u *UserBasic) GetById(id uint) error {
+	if err := config.MysqlDB.Where("id = ?", id).First(u).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+	return nil
+}
+
 // 新增数据
 func (u *UserBasic) Insert() error {
 	if err := config.MysqlDB.Create(u).Error; err != nil {
