@@ -19,6 +19,12 @@ type AppConfig struct {
 
 }
 
+// 会话配置
+type SessionConfig struct {
+	ExpiresTimes uint   // 会话有效期，单位：小时
+	PrivateKey   string // jwt 加密key
+}
+
 // redis 配置
 type RedisConfig struct {
 	Addr         string // 连接地址
@@ -36,7 +42,7 @@ func InitConfig() {
 	// 获取项目的执行路径
 	dir, _ := os.Getwd()
 	configFile = viper.New()
-	configFile.AddConfigPath(dir + "/evn")
+	configFile.AddConfigPath(dir + "/env")
 	configFile.SetConfigName("application")
 	configFile.SetConfigType("yaml")
 	err := configFile.ReadInConfig()
@@ -55,6 +61,8 @@ func InitConfig() {
 		PoolSize:     configFile.GetInt(common.CONFIG_PREFIX + "redis.poolSize"),
 		MinIdleConns: configFile.GetInt(common.CONFIG_PREFIX + "redis.minIdleConns"),
 	})
+	// 初始化toekn配置
+	initSessionConfig()
 
 }
 
@@ -63,7 +71,25 @@ var (
 	RedisClient  *redis.Client
 	ServerConfig *AppConfig
 	configFile   *viper.Viper
+	TokenConfig  *SessionConfig
 )
+
+func initSessionConfig() {
+	expiresTimes := configFile.GetUint(common.CONFIG_PREFIX + "token.expiresTimes")
+	privateKey := configFile.GetString(common.CONFIG_PREFIX + "token.privateKey")
+
+	if expiresTimes == 0 {
+		expiresTimes = common.DEFAULT_EXPIRES_TIMES
+	}
+	if privateKey == "" {
+		privateKey = common.DEFAULT_PRIVATE_KEY
+	}
+
+	TokenConfig = &SessionConfig{
+		ExpiresTimes: expiresTimes,
+		PrivateKey:   privateKey,
+	}
+}
 
 // 初始化server 配置
 func initServerConfig() {
