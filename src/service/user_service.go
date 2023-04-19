@@ -5,6 +5,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"org.chatgin/src/authenticate"
+	"org.chatgin/src/authenticate/middleware"
 	"org.chatgin/src/interfaces"
 	"org.chatgin/src/module"
 )
@@ -25,33 +26,41 @@ type UserRegisterForm struct {
 	Password string `form:"paasword"`
 }
 
-type UserInfo struct {
-	id       uint   `json:"id"`
-	username string `json:"username"`
-	state    int16  `json:"state"`
+type LoginUser struct {
+	id       uint                                         `json:"id"`
+	username string                                       `json:"username"`
+	state    int16                                        `json:"state"`
+	token    interfaces.TokenObject[middleware.JWTClaims] `json:"token"`
 }
 
-func (userinfo *UserInfo) GetUsername() string {
+type UserInfo struct {
+	Id       uint
+	Username string
+	State    int16
+}
+
+func (userinfo *LoginUser) GetUsername() string {
 	return userinfo.username
 }
 
-func (userinfo *UserInfo) GetId() uint {
+func (userinfo *LoginUser) GetId() uint {
 	return userinfo.id
 }
 
-func (userinfo *UserInfo) GetState() int16 {
+func (userinfo *LoginUser) GetState() int16 {
 	return userinfo.state
 }
 
-func (userinfo *UserInfo) GetToken() string {
-	return ""
+func (userinfo *LoginUser) GetToken() interfaces.TokenObject[middleware.JWTClaims] {
+	return userinfo.token
 }
 
-func NewUserInfo(id uint, state int16, username string) *UserInfo {
-	return &UserInfo{
+func NewLoginUserInfo(id uint, state int16, username string, token interfaces.TokenObject[middleware.JWTClaims]) *LoginUser {
+	return &LoginUser{
 		id:       id,
 		state:    state,
 		username: username,
+		token:    token,
 	}
 }
 
@@ -83,7 +92,7 @@ func (u *UserService) Register(userRegister UserRegisterForm) error {
 }
 
 // user login
-func (u *UserService) Login(userLogin UserLoginForm) (userInfo interfaces.UserInfo, erro error) {
+func (u *UserService) Login(userLogin UserLoginForm) (userInfo interfaces.LoginUser[middleware.JWTClaims], erro error) {
 	if userLogin.Username == "" {
 		return nil, errors.New("登录名不允许为空")
 	}
@@ -105,9 +114,16 @@ func (u *UserService) Login(userLogin UserLoginForm) (userInfo interfaces.UserIn
 
 	}
 	// todo 生成token
-
+	token := &middleware.Token{}
+	claims := &middleware.JWTClaims{
+		Custom: user.ID,
+	}
+	erro = token.Generate(*claims)
+	if erro != nil {
+		return nil, errors.New("登录失败，系统异常")
+	}
 	// 返回登录信息
-	return NewUserInfo(user.ID, user.State, user.Username), nil
+	return NewLoginUserInfo(user.ID, user.State, user.Username, token), nil
 }
 
 // user logout
@@ -117,6 +133,14 @@ func (u *UserService) Logout(username string) bool {
 }
 
 // get userinfo
-func (u *UserService) GetInfo(id int) *UserInfo {
-	return nil
+func (u *UserService) GetInfo(id uint) (userinfo *UserInfo, err error) {
+	user := &module.UserBasic{}
+	if err := user.GetById(id); err != nil {
+		return nil, errors.New("未找到相关用户数据")
+	}
+	return &UserInfo{
+		Id:       user.ID,
+		Username: user.Username,
+		State:    user.State,
+	}, nil
 }

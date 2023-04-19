@@ -2,6 +2,7 @@ package controller
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"org.chatgin/src/common"
@@ -44,7 +45,28 @@ func UserLoginEndpoint(ctx *gin.Context) {
 		"id":       userInfo.GetId(),
 		"username": userInfo.GetUsername(),
 		"state":    userInfo.GetState(),
-		"token":    userInfo.GetToken(),
+		"token": map[string]any{
+			"accessToken":  userInfo.GetToken().Token(),
+			"expiresAt":    userInfo.GetToken().ExpiresAt(),
+			"refreshToken": userInfo.GetToken().RefreshToken(),
+		},
 	}
 	ctx.JSON(http.StatusBadRequest, common.ResData(userJson))
+}
+
+func GetUserInfoEndpoint(ctx *gin.Context) {
+	id := ctx.Param("uid")
+	userService := &service.UserService{}
+	uid, err := strconv.Atoi(id)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, common.ResError(http.StatusBadRequest, err))
+		return
+	}
+	user, err := userService.GetInfo(uint(uid))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, common.ResError(http.StatusBadRequest, err))
+		return
+	}
+	ctx.JSON(http.StatusBadRequest, common.ResData(user))
+
 }

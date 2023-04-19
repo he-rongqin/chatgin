@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"org.chatgin/src/authenticate/middleware"
 	"org.chatgin/src/controller"
 )
 
@@ -19,6 +20,13 @@ func Router() *gin.Engine {
 	{
 		v1.POST("/user/register", controller.UserRegisterEndpoint)
 		v1.POST("/auth/login", controller.UserLoginEndpoint)
+	}
+	authorized := router.Group("api/v1").Use(middleware.AuthRequired())
+	// 使用jwt 中间件鉴权
+	// authorized.Use(middleware.AuthRequired())
+
+	{
+		authorized.GET("/user/:uid", controller.GetUserInfoEndpoint)
 	}
 
 	return router
