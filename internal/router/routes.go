@@ -2,8 +2,8 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"org.chatgin/src/authenticate/middleware"
-	"org.chatgin/src/controller"
+	"org.chatgin/internal/handler"
+	"org.chatgin/internal/middleware"
 )
 
 func Router() *gin.Engine {
@@ -18,15 +18,15 @@ func Router() *gin.Engine {
 	router.Use(gin.Recovery())
 	v1 := router.Group("api/v1")
 	{
-		v1.POST("/user/register", controller.UserRegisterEndpoint)
-		v1.POST("/auth/login", controller.UserLoginEndpoint)
+		v1.POST("/user/register", handler.UserRegisterEndpoint)
+		v1.POST("/auth/login", handler.UserLoginEndpoint)
 	}
 	authorized := router.Group("api/v1").Use(middleware.AuthRequired())
 	// 使用jwt 中间件鉴权
 	// authorized.Use(middleware.AuthRequired())
 
 	{
-		authorized.GET("/user/:uid", controller.GetUserInfoEndpoint)
+		authorized.GET("/user/:uid", handler.GetUserInfoEndpoint)
 	}
 
 	return router

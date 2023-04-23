@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"org.chatgin/src/common"
+	common "org.chatgin/pkg/util"
 )
 
 // 全局配置
@@ -42,7 +42,7 @@ func InitConfig() {
 	// 获取项目的执行路径
 	dir, _ := os.Getwd()
 	configFile = viper.New()
-	configFile.AddConfigPath(dir + "/env")
+	configFile.AddConfigPath(dir + "/.env")
 	configFile.SetConfigName("application")
 	configFile.SetConfigType("yaml")
 	err := configFile.ReadInConfig()

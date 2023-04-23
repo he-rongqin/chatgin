@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"org.chatgin/src/common"
+	common "org.chatgin/pkg/util"
 )
 
 func AuthRequired() gin.HandlerFunc {
@@ -26,7 +26,7 @@ func AuthRequired() gin.HandlerFunc {
 			return
 		}
 		// 解析token
-		token := &Token{}
+		token := &TokenService{}
 		claims, err := token.Analyze(strings.Replace(tokenStr, "Bearer ", "", -1))
 		if err != nil {
 			ctx.JSON(http.StatusBadRequest, common.ResErrorMsg(http.StatusBadRequest, "非法请求，token解析失败"))

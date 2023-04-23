@@ -1,17 +1,18 @@
-package controller
+package handler
 
 import (
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"org.chatgin/src/common"
-	"org.chatgin/src/service"
+	"org.chatgin/internal/module"
+	"org.chatgin/internal/service"
+	common "org.chatgin/pkg/util"
 )
 
 // 用户注册
 func UserRegisterEndpoint(ctx *gin.Context) {
-	var userRegister service.UserRegisterForm
+	var userRegister module.UserRegisterForm
 	if err := ctx.ShouldBind(&userRegister); err != nil {
 		ctx.JSON(http.StatusBadRequest, common.ResError(http.StatusBadRequest, err))
 		return
@@ -27,7 +28,7 @@ func UserRegisterEndpoint(ctx *gin.Context) {
 }
 
 func UserLoginEndpoint(ctx *gin.Context) {
-	var userLogin service.UserLoginForm
+	var userLogin module.UserLoginForm
 	// binding 校验
 	if err := ctx.ShouldBind(&userLogin); err != nil {
 		ctx.JSON(http.StatusBadRequest, common.ResError(http.StatusBadRequest, err))
@@ -40,18 +41,7 @@ func UserLoginEndpoint(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, common.ResError(http.StatusBadRequest, err))
 		return
 	}
-	// 组装 map，因为userinfo 属性是私有的
-	userJson := map[string]any{
-		"id":       userInfo.GetId(),
-		"username": userInfo.GetUsername(),
-		"state":    userInfo.GetState(),
-		"token": map[string]any{
-			"accessToken":  userInfo.GetToken().Token(),
-			"expiresAt":    userInfo.GetToken().ExpiresAt(),
-			"refreshToken": userInfo.GetToken().RefreshToken(),
-		},
-	}
-	ctx.JSON(http.StatusBadRequest, common.ResData(userJson))
+	ctx.JSON(http.StatusBadRequest, common.ResData(userInfo))
 }
 
 func GetUserInfoEndpoint(ctx *gin.Context) {

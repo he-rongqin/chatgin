@@ -1,4 +1,4 @@
-package interfaces
+package password
 
 // 密码处理器接口
 type PasswordEncoder interface {
